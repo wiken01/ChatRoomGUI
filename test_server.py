@@ -18,6 +18,7 @@ class Murder(object):
         c, addr = self.s.accept()
         print("connected")
         while True:
+            print(" while in server")
             msg = input("input:")
             c.send(msg.encode())
             print("sended")
@@ -25,7 +26,7 @@ class Murder(object):
 
 if __name__ == "__main__":
     HOST = "127.0.0.1"
-    PORT = 8000
+    PORT = 8064
     ADDR = (HOST, PORT)
     m = Murder(ADDR)
     m.begin()

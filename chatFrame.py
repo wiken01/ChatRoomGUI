@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
 import wx
+import sys
 from time import sleep
-from client import *
-from multiprocessing import Process
+from threading import Thread
 from select import *
 from socket import *
 
@@ -106,40 +106,19 @@ class App(wx.App):
         self.SetTopWindow(self.frame)
         return True
 
-    def main():
-        app = App()
-        app.MainLoop()
 
-
-def do_chat(self, s):
-        # create child process to send msg
-        # parent process receive msg from server
-    print("in chat")
-    p = Process(target=self.to_send, args=(s,))
-    p.start()
-    sleep(0.2)
-    print("father process")
-    while True:
-        msg = input("消息：")
-        msg = 'C' + '^' + msg
-        s.send(msg.encode())
-        if msg == "C^exit":
-            sleep(0.1)
-            p.join()
-            s.close()
-            sys.exit()
-
-
-class Client(object):
+class Client(MyFrame):
 
     def __init__(self, ADDR):
+        MyFrame.__init__(self, size=(600, 600))
+
         self.s = socket(AF_INET, SOCK_STREAM)
         self.s.setsockopt(SOL_SOCKET, SO_REUSEADDR, 1)
         self.ADDR = ADDR
         print(self.ADDR)
 
     def MainServer(self):
-        print("child process")
+        print("child thread")
         rlist = [self.s]
         wlist = []
         elist = [self.s]
@@ -151,20 +130,25 @@ class Client(object):
             print("IO conplexing")
             rl, wl, el = select(rlist, wlist, elist)
             for i in rl:
-                print("in for of rl")
-                msg = self.s.recv(BUFFER).decode()
-                msg = msg.split("^")[1]
-                MyFrame.r2.AppendText("\n" + msg)
-                print(msg)
+                if i == self.s:
+                    print("in for of rl")
+                    msg = self.s.recv(BUFFER).decode()
+                    self.r2.AppendText("\n" + msg)
+                    print(msg)
 
 
 if __name__ == "__main__":
     HOST = "127.0.0.1"
-    PORT = 8000
+    PORT = 8063
     ADDR = (HOST, PORT)
+    app = App()
     C = Client(ADDR)
-    print("before")
-    p = Process(target=C.MainServer)
-    p.start()
-    App.main()
-    p.join()
+    T = Thread(target=C.MainServer)
+    T.start()
+    # print("before")
+    # p = Process(target=C.MainServer)
+    # p.start()
+    app.MainLoop()
+
+    T.join()
+    # p.join()
